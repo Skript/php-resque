@@ -127,8 +127,15 @@ class Resque_Job
 		if (!isset($this->payload['args'])) {
 			return array();
 		}
+
+        $args = $this->payload['args'];
+        if (array_key_exists(0, $args)) {
+            $args = $args[0];
+        }
+
+        return $args;
 		
-		return $this->payload['args'][0];
+		//return $this->payload['args'][0];
 	}
 	
 	/**
