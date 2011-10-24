@@ -49,7 +49,7 @@ class Redisent {
     function __construct($host, $port = 6379) {
         $this->host = $host;
         $this->port = $port;
-				$this->establishConnection();
+        $this->establishConnection();
     }
 
     function establishConnection() {
@@ -70,10 +70,19 @@ class Redisent {
         $command = sprintf('*%d%s%s%s', count($args), CRLF, implode(array_map(array($this, 'formatArgument'), $args), CRLF), CRLF);
 
         /* Open a Redis connection and execute the command */
+        $write_attempts = 0;
         for ($written = 0; $written < strlen($command); $written += $fwrite) {
             $fwrite = fwrite($this->__sock, substr($command, $written));
-            if ($fwrite === FALSE) {
-                throw new Exception('Failed to write entire command to stream');
+            if ($fwrite === false || $fwrite === 0) {
+                if ($write_attempts > 100) {
+                    throw new Exception('Failed to write entire command to stream');
+                } else {
+                    $write_attempts += 1;
+                    echo "Attempt to reestablish connection #$write_attempts";
+                    fclose($this->__sock);
+                    $this->establishConnection();
+                    $written = 0;
+                }
             }
         }
 
