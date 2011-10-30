@@ -57,6 +57,14 @@ class Redisent {
         if (!$this->__sock) {
             throw new Exception("{$errno} - {$errstr}");
         }
+        if (isset($this->db)) {
+            $this->select($this->db);
+        }
+    }
+
+    function select($db) {
+        $this->db = $db;
+        return $this->__call('select', array($db));
     }
 
     function __destruct() {
